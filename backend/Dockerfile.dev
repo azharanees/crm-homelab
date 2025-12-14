@@ -1,0 +1,38 @@
+FROM ruby:3.4.7-slim
+
+WORKDIR /app
+
+# Set development environment
+ENV RAILS_ENV=development
+ENV RAILS_LOG_TO_STDOUT=true
+
+# Install dependencies
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    libyaml-dev \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install bundler
+RUN gem install bundler
+
+# Copy Gemfile only first
+COPY Gemfile ./
+
+# Install all gems (including development)
+RUN bundle install --no-cache
+
+# Copy the rest of the app
+COPY . .
+
+# Create log and tmp directories with proper permissions
+RUN mkdir -p log tmp/pids tmp/sockets && \
+    chmod -R 777 log tmp Gemfile.lock 2>/dev/null || true
+
+EXPOSE 3000
+
+ENTRYPOINT ["/app/bin/docker-entrypoint"]
+CMD ["bin/rails", "server", "-b", "0.0.0.0"]

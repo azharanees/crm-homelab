@@ -1,0 +1,36 @@
+# Development overrides
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: wingmate_development
+      POSTGRES_PASSWORD: password
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgresql://postgres:password@db:5432/wingmate_development
+      JWT_SECRET: dev-secret-not-for-production
+      SECRET_KEY_BASE: dev-secret-not-for-production
+    volumes:
+      - ./backend:/app
+      - backend_gems:/usr/local/bundle
+    stdin_open: true
+    tty: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      VITE_API_URL: /api/v1
+      VITE_PROXY_TARGET: http://backend:3000
+    stdin_open: true
+    tty: true

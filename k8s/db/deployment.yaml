@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-db
+  namespace: crm-production
+  labels:
+    app: crm-db
+    tier: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm-db
+      tier: database
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: crm-db
+        tier: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: "wingmate_production"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - pg_isready -U postgres
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - pg_isready -U postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        # REMOVED all securityContext - this was causing permission issues
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-data-pvc
+      restartPolicy: Always

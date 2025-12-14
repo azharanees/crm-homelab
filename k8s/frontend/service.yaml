@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-frontend-service
+  namespace: crm-production
+  labels:
+    app: crm-frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 5173
+    targetPort: 5173
+    nodePort: 30173
+    protocol: TCP
+    name: http
+  selector:
+    app: crm-frontend

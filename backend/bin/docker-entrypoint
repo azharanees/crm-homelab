@@ -1,0 +1,32 @@
+#!/bin/bash -e
+
+# Wait for PostgreSQL to be ready
+echo "Waiting for PostgreSQL..."
+until PGPASSWORD=${POSTGRES_PASSWORD:-password} psql -h db -U ${POSTGRES_USER:-postgres} -d postgres -c '\q' 2>/dev/null; do
+  >&2 echo "PostgreSQL is unavailable - sleeping"
+  sleep 1
+done
+
+>&2 echo "PostgreSQL is up - executing command"
+
+# If running the rails server then create or migrate existing database
+if [ "${1}" == "bin/rails" ] && [ "${2}" == "server" ]; then
+  echo "Setting up database..."
+  
+  # Only seed in development
+  if [ "${RAILS_ENV}" == "development" ]; then
+    ./bin/rails db:create db:migrate db:seed || true
+  else
+    # In production, migrate and seed if database is empty
+    ./bin/rails db:migrate || true
+    # Seed only if no users exist (idempotent)
+    ./bin/rails runner "User.first || load(Rails.root.join('db/seeds.rb'))" || true
+  fi
+  
+  echo "Database setup complete"
+  
+  # Remove any stale pidfile
+  rm -f tmp/pids/server.pid
+fi
+
+exec "$@"
