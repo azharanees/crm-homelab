@@ -1,0 +1,38 @@
+replicaCount: 3
+
+image:
+  tag: "stable"
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 15
+  targetCPUUtilizationPercentage: 70
+
+env:
+  NODE_ENV: production
+  NEXT_PUBLIC_API_URL: "https://api.crm.yourdomain.com"
+
+ingress:
+  enabled: true
+  hosts:
+    - host: crm.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: crm-tls
+      hosts:
+        - crm.yourdomain.com
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"

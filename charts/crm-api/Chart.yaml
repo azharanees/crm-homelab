@@ -1,0 +1,13 @@
+apiVersion: v2
+name: crm-api
+description: CRM Rails API Backend
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - crm
+  - rails
+  - api
+maintainers:
+  - name: Azhar
+    email: your-email@example.com

@@ -1,0 +1,19 @@
+replicaCount: 2
+
+image:
+  tag: "latest"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+env:
+  NODE_ENV: development
+  NEXT_PUBLIC_API_URL: "http://crm-api-service.dev.svc.cluster.local:3000"

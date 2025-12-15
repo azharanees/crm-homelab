@@ -1,0 +1,31 @@
+replicaCount: 3
+
+image:
+  tag: "stable"  # Use specific tag in production
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+env:
+  RAILS_ENV: production
+  LOG_LEVEL: info
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "" # Will be filled by Terraform output
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+  prometheus.io/path: "/metrics"
