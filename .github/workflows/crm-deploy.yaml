@@ -1,0 +1,175 @@
+name: CRM Build & Deploy to EKS
+
+on:
+  push:
+    branches: 
+      - main
+      - 'release/**'
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  CLUSTER_NAME: crm-cluster-${{ github.ref == 'refs/heads/main' && 'dev' || 'prod' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Backend Tests
+        working-directory: ./backend
+        run: |
+          bundle install
+          bundle exec rails test
+          bundle exec rubocop
+
+      - name: Frontend Tests
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run test
+          npm run lint
+
+      - name: Helm Lint
+        run: |
+          helm lint charts/crm-api charts/crm-web
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push API image to ECR
+        env:
+          ECR_REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd backend
+          docker build -t $ECR_REGISTRY/crm-api:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/crm-api:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/crm-api:$IMAGE_TAG $ECR_REGISTRY/crm-api:latest
+          docker push $ECR_REGISTRY/crm-api:latest
+
+      - name: Build, tag, and push Web image to ECR
+        env:
+          ECR_REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd frontend
+          docker build -t $ECR_REGISTRY/crm-web:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/crm-web:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/crm-web:$IMAGE_TAG $ECR_REGISTRY/crm-web:latest
+          docker push $ECR_REGISTRY/crm-web:latest
+
+      - name: Output ECR URLs
+        run: |
+          echo "API_IMAGE=${{ env.REGISTRY }}/crm-api" >> $GITHUB_ENV
+          echo "WEB_IMAGE=${{ env.REGISTRY }}/crm-web" >> $GITHUB_ENV
+
+  deploy-dev:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: development
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      - name: Download kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name crm-cluster-dev
+
+      - name: Deploy API to Dev
+        run: |
+          helm upgrade --install crm-api-dev charts/crm-api \
+            --namespace dev --create-namespace \
+            --set image.repository=${{ env.API_IMAGE }} \
+            --set image.tag=${{ github.sha }} \
+            -f charts/crm-api/values-dev.yaml
+
+      - name: Deploy Web to Dev
+        run: |
+          helm upgrade --install crm-web-dev charts/crm-web \
+            --namespace dev \
+            --set image.repository=${{ env.WEB_IMAGE }} \
+            --set image.tag=${{ github.sha }} \
+            -f charts/crm-web/values-dev.yaml
+
+  deploy-prod:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
+    environment: 
+      name: production
+      url: https://crm.yourdomain.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      - name: Download kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name crm-cluster-prod
+
+      - name: Deploy API to Prod
+        run: |
+          helm upgrade --install crm-api-prod charts/crm-api \
+            --namespace prod --create-namespace \
+            --set image.repository=${{ env.API_IMAGE }} \
+            --set image.tag=${{ github.sha }} \
+            -f charts/crm-api/values-prod.yaml
+
+      - name: Deploy Web to Prod
+        run: |
+          helm upgrade --install crm-web-prod charts/crm-web \
+            --namespace prod \
+            --set image.repository=${{ env.WEB_IMAGE }} \
+            --set image.tag=${{ github.sha }} \
+            -f charts/crm-web/values-prod.yaml
