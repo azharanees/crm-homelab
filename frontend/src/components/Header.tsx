@@ -16,10 +16,10 @@ export function Header() {
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={{ width: '40px', height: '40px', backgroundColor: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', color: '#1e40af' }}>
-            W
+            C
           </div>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Wingmate</h1>
+            <h1 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>CRM App</h1>
             <p style={{ fontSize: '12px', opacity: 0.9, margin: '2px 0 0 0' }}>CRM Platform</p>
           </div>
         </div>

@@ -78,6 +78,8 @@ Rails.application.configure do
 
   # Allow Docker service names and localhost in development
   config.hosts << "backend"
+  config.hosts << "crm-api"
+  config.hosts << /.*\.svc\.cluster\.local/  # Allow Kubernetes service DNS
   config.hosts << "localhost"
   config.hosts << /.*\.local/
   # Skip host authorization for health check endpoint

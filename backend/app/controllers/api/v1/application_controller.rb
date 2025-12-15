@@ -5,9 +5,13 @@ module Api
 
       protected
 
+      def jwt_secret
+        ENV['SECRET_KEY_BASE'] || Rails.application.credentials.secret_key_base || Rails.application.secrets.secret_key_base
+      end
+
       def encode_token(user_id)
         payload = { user_id: user_id, exp: 24.hours.from_now.to_i }
-        JWT.encode(payload, Rails.application.credentials.secret_key_base || Rails.application.secrets.secret_key_base)
+        JWT.encode(payload, jwt_secret)
       end
 
       def decode_token
@@ -15,7 +19,7 @@ module Api
         
         token = request.headers['Authorization'].split(' ').last
         begin
-          JWT.decode(token, Rails.application.credentials.secret_key_base || Rails.application.secrets.secret_key_base)[0]
+          JWT.decode(token, jwt_secret)[0]
         rescue JWT::DecodeError
           nil
         end

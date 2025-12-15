@@ -1,0 +1,18 @@
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelector: {}
+      ruleSelectorNilUsesHelmValues: false
+      ruleSelector: {}
+  grafana:
+    enabled: true
+    adminPassword: "crm-admin-123"
+    persistence:
+      enabled: false  # Disable for local demo
+  prometheusOperator:
+    enabled: true
+  alertmanager:
+    enabled: false  # Disable for local

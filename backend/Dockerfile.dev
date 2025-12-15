@@ -19,11 +19,11 @@ RUN apt-get update -qq && \
 # Install bundler
 RUN gem install bundler
 
-# Copy Gemfile only first
-COPY Gemfile ./
+# Copy Gemfile and Gemfile.lock
+COPY Gemfile Gemfile.lock ./
 
 # Install all gems (including development)
-RUN bundle install --no-cache
+RUN bundle install --jobs 4 --retry 3
 
 # Copy the rest of the app
 COPY . .

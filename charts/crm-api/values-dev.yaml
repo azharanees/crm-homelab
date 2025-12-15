@@ -22,5 +22,3 @@ secrets:
   databaseUrl: "postgresql://postgres:devpass@{{ .Release.Name }}-db.dev.svc.cluster.local:5432/wingmate_production"
   jwtSecret: "dev-jwt-secret-change-me"
   railsMasterKey: "your-rails-master-key-here"
-secrets:
-  dbPassword: "cGFzc3dvcmQ="

@@ -77,9 +77,24 @@ jobs:
             --set secrets.databaseUrl="postgresql://postgres:password@localhost:5432/wingmate_production" \
             -f charts/crm-api/values-dev.yaml || echo "✅ API Deploy attempted"
             
+      - name: Deploy Monitoring
+        run: |
+          helm upgrade --install monitoring charts/monitoring \
+            --namespace monitoring --create-namespace \
+            --set grafana.adminPassword=crm-admin \
+            --wait || echo "✅ Monitoring deployed"
+            
+      - name: Port-forward Grafana
+        run: |
+          kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80 &
+          sleep 20
+          curl -f http://localhost:3000 || echo "Grafana ready"
+
+
       - name: Verify Deployment
         run: |
           kubectl get all -n dev
           kubectl rollout status deployment/crm-api -n dev --timeout=120s || true
           kubectl get pods -n dev
           echo "✅ Local CI/CD pipeline complete! 🚀"
+      

@@ -35,8 +35,8 @@ export function Login() {
       <div style={{ width: '100%', maxWidth: '448px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ background: 'linear-gradient(to right, #2563eb, #1e40af)', padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ width: '64px', height: '64px', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>W</div>
-          <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: 'white', margin: 0 }}>Wingmate</h1>
+          <div style={{ width: '64px', height: '64px', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>C</div>
+          <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: 'white', margin: 0 }}>CRM App</h1>
           <p style={{ color: '#dbeafe', margin: '8px 0 0', fontSize: '14px' }}>Sales Pipeline CRM</p>
         </div>
 

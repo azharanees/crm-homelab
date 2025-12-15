@@ -50,3 +50,6 @@ gem "rack-cors", "~> 3.0"
 gem "jwt", "~> 3.1"
 gem "bcrypt", "~> 3.1"
 gem "active_model_serializers", "~> 0.10.16"
+
+gem 'prometheus-client', '~> 4.2'
+gem 'prometheus_exporter', '~> 2.2'  

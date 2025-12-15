@@ -17,3 +17,6 @@ autoscaling:
 env:
   NODE_ENV: development
   NEXT_PUBLIC_API_URL: "http://crm-api-service.dev.svc.cluster.local:3000"
+
+httpRoute:
+  enabled: false
