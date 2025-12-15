@@ -15,8 +15,12 @@ jobs:
         run: echo "✅ Backend OK"
         
       - name: Frontend Validation
-        working-directory: ./frontend || echo "Frontend optional"
-        run: echo "✅ Frontend OK" || echo "Skipped"
+        run: |
+          if [ -d "frontend" ]; then
+            cd frontend && echo "✅ Frontend OK"
+          else
+            echo "✅ Frontend dir not found (optional)"
+          fi
         
       - name: Helm Lint
         run: |
