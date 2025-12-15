@@ -1,9 +1,4 @@
-That action doesn't exist either. Let's use a simpler approach - manually install Minikube (no custom actions needed):
-
-bash
-cat > .github/workflows/crm-local-deploy.yml << 'EOF'
 name: CRM Build Test (No AWS)
-
 on:
   push:
     branches: [main]
